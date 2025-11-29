@@ -1,1 +1,1 @@
-# segmentacao de imagens -G rafos
+# segmentacao de imagens - Grafos
