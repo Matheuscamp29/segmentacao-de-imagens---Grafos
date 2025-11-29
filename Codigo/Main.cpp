@@ -1,20 +1,21 @@
 #include <iostream>
 #include "arborescencia_edmonds.hpp"
 #include "converter_arestas.cpp"
+#include "Segmentacao.cpp"
 
 using namespace std;
 
 int main() {
 
+    string path = "./imagem.jpg";
+    Imagem img;
+
     Grafo* g = new Grafo(true); //true = direcionado
+    if (!(img.carregar(path))){
+        cout << "Imagem carregada.";
+        converterImagemParaGrafo(img, *g);
+    }
 
-    // ... construir vértices e arestas ...
-
-
-
-
-    //tudo necessario para edmonds
-    //converter para lista de arestas
     vector<Edge> edges = converterParaArestas(g);
 
     //resultado da arborescencia
