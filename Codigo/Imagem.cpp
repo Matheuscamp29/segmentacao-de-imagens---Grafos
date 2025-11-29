@@ -20,7 +20,7 @@ bool Imagem::carregar(const std::string& caminho) {
     if (dados) {
         stbi_image_free(dados); // Limpa imagem anterior, se houver
     }
-    dados = stbi_load(caminho.c_str(), &largura, &altura, &canais, 0);
+    dados = stbi_load(caminho.c_str(), &largura, &altura, &canais, 3);
     
     if (!dados) {
         std::cerr << "Erro ao carregar a imagem: " << caminho << std::endl;
