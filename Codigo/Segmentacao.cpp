@@ -1,0 +1,1 @@
+// Converte Imagem <-> Grafo e pinta o resultado
