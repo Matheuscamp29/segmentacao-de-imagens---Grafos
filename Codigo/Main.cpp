@@ -11,7 +11,7 @@ int main() {
     Imagem img;
 
     Grafo* g = new Grafo(true); //true = direcionado
-    if (!(img.carregar(path))){
+    if (img.carregar(path)){
         cout << "Imagem carregada.";
         converterImagemParaGrafo(img, *g);
     }
