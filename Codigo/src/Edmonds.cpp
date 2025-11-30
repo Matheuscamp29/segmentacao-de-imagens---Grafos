@@ -66,7 +66,6 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
         }
     }
 
-    // --- CASO BASE: Se não tem ciclo, achamos a resposta! ---
     if (!temCiclo)
     {
         vector<int> resultado;
@@ -81,8 +80,6 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
         return resultado;
     }
 
-    // --- PASSO RECURSIVO: Contração do Ciclo ---
-
     // Todo nó que não está num ciclo ganha seu próprio grupo
     for (int i = 0; i < N; i++)
     {
@@ -93,7 +90,6 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
     vector<Edge> novasArestas;
 
     // Mapeia qual aresta original corresponde à nova aresta contraída
-    // newEdge -> originalEdgeIndex
     vector<int> mapParaOriginal;
 
     for (int i = 0; i < edges.size(); i++)
@@ -107,8 +103,6 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
 
         if (gu != gv)
         {
-            // A mágica do Edmonds: w_nova = w_velha - peso_da_aresta_no_ciclo
-            // Isso penaliza arestas que tentam entrar no ciclo
             double custoNoCiclo = edges[menorArestaIdx[v]].w;
 
             novasArestas.push_back({gu, gv, w - custoNoCiclo, edges[i].id});
@@ -120,19 +114,16 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
     int novaRaiz = group[root];
     vector<int> arestasEscolhidasRecursao = edmonds(novaRaiz, groupCount, novasArestas);
 
-    // --- EXPANSÃO (Reconstrução) ---
+    // --- EXPANSÃO ---
     vector<int> resultadoFinal;
     vector<bool> noComEntradaExterna(N, false);
 
     // 1. Adiciona as arestas que a recursão escolheu
     for (int idAresta : arestasEscolhidasRecursao)
     {
-        // Precisamos achar qual aresta na lista ATUAL (edges) gerou essa aresta recursiva
-        // Como o ID é único globalmente, podemos procurar ou usar o mapeamento.
-        // Pela simplicidade aqui, vamos procurar na lista 'novasArestas' qual tem esse ID
 
         int idxOriginal = -1;
-        // Procura linear (pode ser otimizada, mas funciona)
+        // Procura linear
         for (size_t k = 0; k < novasArestas.size(); k++)
         {
             if (novasArestas[k].id == idAresta)
@@ -150,25 +141,15 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
         }
     }
 
-    // 2. Adiciona as arestas internas dos ciclos (que tínhamos guardado em menorArestaIdx)
-    // A MENOS que aquele nó já tenha recebido uma conexão vinda de fora (passo acima)
+    // 2. Adiciona as arestas internas dos ciclos
     for (int i = 0; i < N; i++)
     {
         if (i != root && !noComEntradaExterna[i])
         {
-            // Se o nó i faz parte de um ciclo que foi contraído, a gente restaura a aresta interna dele
-            // Se ele não faz parte de ciclo contraído, ele já foi tratado pela recursão (ou é isolado)
-
-            // Truque: A recursão resolve o grafo de "grupos".
-            // Se o nó 'i' está dentro de um grupo que recebeu uma aresta, 'noComEntradaExterna' será false para ele,
-            // a menos que ele seja EXATAMENTE o nó que recebeu a aresta.
-
-            // Simplificação: Adicionamos as arestas do "ciclo original" para todos,
-            // exceto para quem virou a "entrada" do ciclo.
             int u = edges[menorArestaIdx[i]].u;
             int v = edges[menorArestaIdx[i]].v;
 
-            // Só adiciona se u e v estavam no mesmo grupo (era uma aresta interna do ciclo)
+            // Só adiciona se u e v estavam no mesmo grupo
             if (group[u] == group[v])
             {
                 resultadoFinal.push_back(edges[menorArestaIdx[i]].id);

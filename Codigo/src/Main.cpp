@@ -8,7 +8,7 @@
 
 #include "../include/Edmonds.h"
 #include "../include/Kruskal.h"
-#include "converter_arestas.cpp" 
+#include "converter_arestas.cpp"
 #include "../include/Imagem.h"
 #include "../include/Segmentacao.h"
 #include "../include/Grafo.h"
@@ -17,16 +17,15 @@
 
 using namespace std;
 
-
 struct UnionFindColor
 {
     vector<int> pai;
-    vector<int> tamanho; 
+    vector<int> tamanho;
 
     UnionFindColor(int n)
     {
         pai.resize(n);
-        tamanho.resize(n, 1); 
+        tamanho.resize(n, 1);
         for (int i = 0; i < n; i++)
             pai[i] = i;
     }
@@ -44,7 +43,7 @@ struct UnionFindColor
         int root_j = find(j);
         if (root_i != root_j)
         {
-            
+
             if (tamanho[root_i] < tamanho[root_j])
             {
                 pai[root_i] = root_j;
@@ -58,19 +57,16 @@ struct UnionFindColor
         }
     }
 
-   
     int getSize(int i)
     {
         return tamanho[find(i)];
     }
 };
 
-
 void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold, int minSize)
 {
     UnionFindColor uf(width * height);
 
-    
     for (const auto &a : arestasMST)
     {
         if (a.peso <= threshold)
@@ -78,7 +74,6 @@ void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &a
             uf.unite(a.u, a.v);
         }
     }
-
 
     if (minSize > 0)
     {
@@ -89,7 +84,7 @@ void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &a
 
             if (rootU != rootV)
             {
-               
+
                 if (uf.getSize(rootU) < minSize || uf.getSize(rootV) < minSize)
                 {
                     uf.unite(rootU, rootV);
@@ -97,7 +92,6 @@ void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &a
             }
         }
     }
-
 
     map<int, vector<unsigned char>> cores;
     srand(time(0));
@@ -130,14 +124,12 @@ void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &a
     cout << "Imagem (MAPA) salva em: " << nomeArquivo << " [minSize: " << minSize << "]" << endl;
 }
 
-
 void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold, int minSize)
 {
     int width = img.getLargura();
     int height = img.getAltura();
     UnionFindColor uf(width * height);
 
-  
     for (const auto &a : arestasMST)
     {
         if (a.peso <= threshold)
@@ -145,7 +137,6 @@ void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &
             uf.unite(a.u, a.v);
         }
     }
-
 
     if (minSize > 0)
     {
@@ -162,7 +153,6 @@ void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &
             }
         }
     }
-
 
     map<int, vector<unsigned long long>> dadosCores;
 
@@ -201,7 +191,8 @@ void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &
             unsigned long long b = dadosCores[root][2];
 
             int index = (y * width + x) * 3;
-            if (count == 0) count = 1;
+            if (count == 0)
+                count = 1;
 
             buffer[index] = (unsigned char)(r / count);
             buffer[index + 1] = (unsigned char)(g / count);
@@ -212,7 +203,6 @@ void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &
     stbi_write_png(nomeArquivo.c_str(), width, height, 3, buffer.data(), width * 3);
     cout << "Imagem (RESULTADO) salva em: " << nomeArquivo << endl;
 }
-
 
 void rodarEdmonds(Imagem &img, double threshold, int minSize)
 {
@@ -288,7 +278,7 @@ void rodarKruskal(Imagem &img, double threshold, int minSize)
 
 int main()
 {
-    string path = "../image2.jpg";
+    string path = "./image2.jpg";
     Imagem img;
 
     if (img.carregar(path))
@@ -304,12 +294,16 @@ int main()
     int n = 0;
     cout << "Insira um valor para o numero de blurs (Sugestao: 1 a 5): ";
     cin >> n;
-    
-    if (n > 0) {
+
+    if (n > 0)
+    {
         img.aplicarBlur(&img, n);
-        if (img.salvar("../img_blur.png")) {
+        if (img.salvar("../img_blur.png"))
+        {
             std::cout << "Sucesso! Verifique o arquivo 'img_blur.png' na pasta do projeto." << std::endl;
-        } else {
+        }
+        else
+        {
             std::cerr << "Erro ao salvar a imagem." << std::endl;
         }
     }
@@ -319,7 +313,7 @@ int main()
     {
         cout << "\n================ MENU ================" << endl;
         cout << "1 - Edmonds (Arborescencia)" << endl;
-        cout << "2 - Kruskal (Segmentacao)" << endl;
+        cout << "2 - Kruskal (Arvore Geradora)" << endl;
         cout << "0 - Sair" << endl;
         cout << "Escolha: ";
         cin >> opcao;
@@ -334,7 +328,7 @@ int main()
             cin >> threshold;
             cout << "Insira o tamanho minimo de segmento (minSize) [ex: 50]: ";
             cin >> minSize;
-            
+
             rodarEdmonds(img, threshold, minSize);
             break;
         }
