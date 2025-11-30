@@ -6,7 +6,6 @@
 #include <chrono>
 #include <ctime>
 
-// Seus includes
 #include "../include/Edmonds.h"
 #include "../include/Kruskal.h"
 #include "converter_arestas.cpp"
@@ -43,27 +42,23 @@ struct UnionFindColor
     }
 };
 
-// --- Função que Gera a Imagem Colorida ---
-// threshold: Diferença de cor máxima aceita. Se for maior que isso, corta a aresta e separa os objetos.
-void salvarSegmentacao(int width, int height, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold)
+// --- Função Original: Cores Aleatórias ---
+void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold)
 {
     UnionFindColor uf(width * height);
 
-    // 1. Reconecta os componentes usando APENAS as arestas da MST que respeitam o threshold
     for (const auto &a : arestasMST)
     {
         if (a.peso <= threshold)
         {
             uf.unite(a.u, a.v);
         }
-        // Se a.peso > threshold, a aresta é ignorada, criando uma "separação" na imagem
     }
 
-    // 2. Gera cores aleatórias para cada componente (segmento)
     map<int, vector<unsigned char>> cores;
     srand(time(0));
 
-    vector<unsigned char> buffer(width * height * 3); // Buffer RGB
+    vector<unsigned char> buffer(width * height * 3);
 
     for (int y = 0; y < height; y++)
     {
@@ -72,7 +67,6 @@ void salvarSegmentacao(int width, int height, const vector<ArestaSimples> &arest
             int id = y * width + x;
             int root = uf.find(id);
 
-            // Se esse segmento ainda não tem cor, sorteia uma
             if (cores.find(root) == cores.end())
             {
                 cores[root] = {
@@ -81,7 +75,6 @@ void salvarSegmentacao(int width, int height, const vector<ArestaSimples> &arest
                     (unsigned char)(rand() % 256)};
             }
 
-            // Pinta o pixel no buffer
             int index = (y * width + x) * 3;
             buffer[index] = cores[root][0];     // R
             buffer[index + 1] = cores[root][1]; // G
@@ -89,12 +82,74 @@ void salvarSegmentacao(int width, int height, const vector<ArestaSimples> &arest
         }
     }
 
-    // 3. Salva o arquivo
     stbi_write_png(nomeArquivo.c_str(), width, height, 3, buffer.data(), width * 3);
-    cout << "Imagem segmentada salva em: " << nomeArquivo << " (Threshold: " << threshold << ")" << endl;
+    cout << "Imagem (MAPA) salva em: " << nomeArquivo << endl;
 }
 
-void rodarEdmonds(Imagem &img)
+// --- Nova Função: Cores Reais ---
+void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold)
+{
+    int width = img.getLargura();
+    int height = img.getAltura();
+    UnionFindColor uf(width * height);
+
+    for (const auto &a : arestasMST)
+    {
+        if (a.peso <= threshold)
+        {
+            uf.unite(a.u, a.v);
+        }
+    }
+
+    // Mapeia ID_Raiz -> {SomaR, SomaG, SomaB, Contador}
+    map<int, vector<unsigned long long>> dadosCores;
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            int id = y * width + x;
+            int root = uf.find(id);
+            unsigned char *pixel = img.getPixel(x, y);
+
+            if (dadosCores.find(root) == dadosCores.end())
+            {
+                dadosCores[root] = {0, 0, 0, 0};
+            }
+
+            dadosCores[root][0] += pixel[0];
+            dadosCores[root][1] += pixel[1];
+            dadosCores[root][2] += pixel[2];
+            dadosCores[root][3]++;
+        }
+    }
+
+    vector<unsigned char> buffer(width * height * 3);
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            int id = y * width + x;
+            int root = uf.find(id);
+
+            unsigned long long count = dadosCores[root][3];
+            unsigned long long r = dadosCores[root][0];
+            unsigned long long g = dadosCores[root][1];
+            unsigned long long b = dadosCores[root][2];
+
+            int index = (y * width + x) * 3;
+            buffer[index] = (unsigned char)(r / count);
+            buffer[index + 1] = (unsigned char)(g / count);
+            buffer[index + 2] = (unsigned char)(b / count);
+        }
+    }
+
+    stbi_write_png(nomeArquivo.c_str(), width, height, 3, buffer.data(), width * 3);
+    cout << "Imagem (RESULTADO) salva em: " << nomeArquivo << endl;
+}
+
+void rodarEdmonds(Imagem &img, double threshold)
 {
     auto inicio = chrono::high_resolution_clock::now();
 
@@ -117,19 +172,27 @@ void rodarEdmonds(Imagem &img)
     cout << "[EDMONDS] Executando..." << endl;
     vector<int> idsEscolhidos = edmonds(raiz, N, edges);
 
+    vector<ArestaSimples> arestasVis;
     double custoTotal = 0;
     for (int id : idsEscolhidos)
     {
-        custoTotal += mapaArestas[id].w;
+        Edge original = mapaArestas[id];
+        custoTotal += original.w;
+        // Converte Edge -> ArestaSimples para poder usar a função de salvar
+        arestasVis.push_back({original.u, original.v, original.w});
     }
 
     cout << "--- Resultado Edmonds ---" << endl;
     cout << "Custo Total: " << custoTotal << endl;
 
+    // Salva as duas versões usando o threshold passado
+    salvarSegmentacaoMapa(img.getLargura(), img.getAltura(), arestasVis, "../edmonds_mapa.png", threshold);
+    salvarSegmentacaoResultado(img, arestasVis, "../edmonds_resultado.png", threshold);
+
     auto fim = chrono::high_resolution_clock::now();
     double tempo = chrono::duration<double>(fim - inicio).count();
 
-    cout << "Tempo de execucao (Endmonds): " << tempo << " segundos" << endl;
+    cout << "Tempo de execucao (Edmonds): " << tempo << " segundos" << endl;
 
     delete g;
 }
@@ -149,7 +212,9 @@ void rodarKruskal(Imagem &img, double threshold)
     cout << "Custo Total MST: " << resultado.custoTotal << endl;
     cout << "Arestas na MST: " << resultado.arestasEscolhidas.size() << endl;
 
-    salvarSegmentacao(img.getLargura(), img.getAltura(), resultado.arestasEscolhidas, "../resultado_segmentacao.png", threshold);
+    // Gera as duas imagens
+    salvarSegmentacaoMapa(img.getLargura(), img.getAltura(), resultado.arestasEscolhidas, "../kruskal_mapa.png", threshold);
+    salvarSegmentacaoResultado(img, resultado.arestasEscolhidas, "../kruskal_resultado.png", threshold);
 
     auto fim = chrono::high_resolution_clock::now();
     double tempo = chrono::duration<double>(fim - inicio).count();
@@ -160,7 +225,7 @@ void rodarKruskal(Imagem &img, double threshold)
 
 int main()
 {
-    string path = "../image2.jpg";
+    string path = "./image2.jpg";
     Imagem img;
 
     if (img.carregar(path))
@@ -172,16 +237,20 @@ int main()
         cout << "Falha ao carregar imagem.\n";
         return 1;
     }
+
     int n = 0;
     cout << "Insira um valor para o numero de blurs" << endl;
     cin >> n;
     img.aplicarBlur(&img, n);
 
-    if (img.salvar("../img_blur.png")) {
-        std::cout << "Sucesso! Verifique o arquivo 'saida_blur.png' na pasta do projeto." << std::endl;
-    } else {
+    if (img.salvar("../img_blur.png"))
+    {
+        std::cout << "Sucesso! Verifique o arquivo 'img_blur.png' na pasta do projeto." << std::endl;
+    }
+    else
+    {
         std::cerr << "Erro ao salvar a imagem." << std::endl;
-    }   
+    }
 
     int opcao = 0;
     do
@@ -196,15 +265,19 @@ int main()
         switch (opcao)
         {
         case 1:
-            rodarEdmonds(img);
+        {
+            int threshold = 0;
+            cout << "Insira um valor para o threshold (Edmonds)" << endl;
+            cin >> threshold;
+            rodarEdmonds(img, threshold);
             break;
-
+        }
         case 2:
         {
-            int threshould = 0;
-            cout << "Insira um valor para o threshould" << endl;
-            cin >> threshould;
-            rodarKruskal(img, threshould);
+            int threshold = 0;
+            cout << "Insira um valor para o threshold (Kruskal)" << endl;
+            cin >> threshold;
+            rodarKruskal(img, threshold);
             break;
         }
         case 0:
