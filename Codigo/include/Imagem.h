@@ -28,6 +28,8 @@ public:
 
     void blur(Imagem *img);
 
+    void aplicarBlur(Imagem *img, int n);
+
 private:
     int largura;
     int altura;
