@@ -134,7 +134,7 @@ void rodarEdmonds(Imagem &img)
     delete g;
 }
 
-void rodarKruskal(Imagem &img)
+void rodarKruskal(Imagem &img, double threshold)
 {
     auto inicio = chrono::high_resolution_clock::now();
 
@@ -148,8 +148,6 @@ void rodarKruskal(Imagem &img)
     cout << "--- Resultado Kruskal ---" << endl;
     cout << "Custo Total MST: " << resultado.custoTotal << endl;
     cout << "Arestas na MST: " << resultado.arestasEscolhidas.size() << endl;
-
-    double threshold = 10.0;
 
     salvarSegmentacao(img.getLargura(), img.getAltura(), resultado.arestasEscolhidas, "../resultado_segmentacao.png", threshold);
 
@@ -174,8 +172,10 @@ int main()
         cout << "Falha ao carregar imagem.\n";
         return 1;
     }
-
-    img.aplicarBlur(&img, 5);
+    int n = 0;
+    cout << "Insira um valor para o numero de blurs" << endl;
+    cin >> n;
+    img.aplicarBlur(&img, n);
 
     if (img.salvar("../img_blur.png")) {
         std::cout << "Sucesso! Verifique o arquivo 'saida_blur.png' na pasta do projeto." << std::endl;
@@ -200,9 +200,13 @@ int main()
             break;
 
         case 2:
-            rodarKruskal(img);
+        {
+            int threshould = 0;
+            cout << "Insira um valor para o threshould" << endl;
+            cin >> threshould;
+            rodarKruskal(img, threshould);
             break;
-
+        }
         case 0:
             cout << "Saindo..." << endl;
             break;
