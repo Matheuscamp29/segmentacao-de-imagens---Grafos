@@ -9,23 +9,24 @@ public:
     Imagem();
     ~Imagem();
 
-    
+    // Carrega uma imagem do disco
     bool carregar(const std::string &caminho);
 
- 
+    // Salva a imagem processada no disco
     bool salvar(const std::string &caminho);
 
-
+    // Getters
     int getLargura() const;
     int getAltura() const;
     int getCanais() const;
 
-    
+    // Retorna o ponteiro direto para os dados (array de pixels)
     unsigned char *getData() const;
 
-    void blur();
-
+    // Retorna o ponteiro para um pixel específico (x, y)
     unsigned char *getPixel(int x, int y) const;
+
+    void blur(Imagem *img);
 
 private:
     int largura;

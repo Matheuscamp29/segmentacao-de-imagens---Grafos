@@ -2,6 +2,7 @@
     "C_Cpp.default.compilerPath": "C:/msys64/usr/bin/gcc.exe",
     "files.associations": {
         "cmath": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "vector": "cpp"
     }
 }

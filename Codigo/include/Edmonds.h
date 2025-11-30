@@ -1,1 +1,15 @@
-// Sera necessario fazer do inicio sem usar a classe "grafo" por problema de memoria
+#ifndef ARBORESCENCIA_EDMONDS_HPP
+#define ARBORESCENCIA_EDMONDS_HPP
+
+#include <vector>
+
+struct Edge
+{
+    int u, v;
+    double w;
+    int id;
+};
+
+std::vector<int> edmonds(int root, int N, std::vector<Edge> edges);
+
+#endif
