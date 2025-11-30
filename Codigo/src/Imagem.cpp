@@ -59,13 +59,14 @@ unsigned char *Imagem::getPixel(int x, int y) const
     return dados + (y * largura + x) * canais;
 }
 
-/* void Imagem::blur(Imagem *img)
+void Imagem::blur(Imagem *img)
 {
     if (!img)
         return;
     int altura = img->altura;
-    int largura = img->altura;
-    int r, g, b = 0;
+    int largura = img->largura;
+    int canais = img->canais;
+    
 
     std::vector<unsigned char> buffer(largura * altura * canais);
 
@@ -75,11 +76,42 @@ unsigned char *Imagem::getPixel(int x, int y) const
     int soma = 16;
 
     for (int y = 0; y < altura; y++)
-        for (int x = 0; x < largura; x++)
-            int ky, kx = -1;
+    {
+        for (int x = 0; x < largura; x++){
+            int inicioy = -1; 
+            int iniciox = -1;
+            int fimy = 1; 
+            int fimx = 1;
+            int r = 0;
+            int g = 0; 
+            int b = 0;
 
-    if (y == 0)
+            if (y == 0) inicioy = 0;
+            if (x == 0) iniciox = 0;
+            if (y == altura-1) fimy = 0;
+            if (x == largura-1) fimx = 0;
 
-        for (int ky; ky < 1; ky++)
-            for (int kx; kx < 1; kx++)
-} */
+
+            for (int ky = inicioy; ky <= fimy; ky++){
+                for (int kx = iniciox; kx <= fimx; kx++){
+                    unsigned char* pixel = img->getPixel(x + kx, y + ky);
+                    int peso = Gauss[ky+1][kx+1];
+
+                    r += pixel[0] * peso;
+                    g += pixel[1] * peso;
+                    b += pixel[2] * peso;
+                }
+            }
+            int index = (y * largura + x);
+            buffer[index]     = r / soma;
+            buffer[index + 1] = g / soma;
+            buffer[index + 2] = b / soma;
+        }
+    }
+    if (img->dados) {
+        // Copia byte a byte do buffer para a memória da imagem
+        for (size_t i = 0; i < buffer.size(); i++) {
+            img->dados[i] = buffer[i];
+        }
+    }
+}
