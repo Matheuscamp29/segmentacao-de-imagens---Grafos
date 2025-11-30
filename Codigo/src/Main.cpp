@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <map>
 #include <cstdlib>
+#include <chrono>
 #include <ctime>
 
 // Seus includes
@@ -95,6 +96,8 @@ void salvarSegmentacao(int width, int height, const vector<ArestaSimples> &arest
 
 void rodarEdmonds(Imagem &img)
 {
+    auto inicio = chrono::high_resolution_clock::now();
+
     Grafo *g = new Grafo(true);
     converterImagemParaGrafo(img, *g);
 
@@ -123,11 +126,18 @@ void rodarEdmonds(Imagem &img)
     cout << "--- Resultado Edmonds ---" << endl;
     cout << "Custo Total: " << custoTotal << endl;
 
+    auto fim = chrono::high_resolution_clock::now();
+    double tempo = chrono::duration<double>(fim - inicio).count();
+
+    cout << "Tempo de execucao (Endmonds): " << tempo << " segundos" << endl;
+
     delete g;
 }
 
 void rodarKruskal(Imagem &img)
 {
+    auto inicio = chrono::high_resolution_clock::now();
+
     cout << "\n[KRUSKAL] Iniciando..." << endl;
 
     Grafo *g = new Grafo(false);
@@ -143,6 +153,10 @@ void rodarKruskal(Imagem &img)
 
     salvarSegmentacao(img.getLargura(), img.getAltura(), resultado.arestasEscolhidas, "../resultado_segmentacao.png", threshold);
 
+    auto fim = chrono::high_resolution_clock::now();
+    double tempo = chrono::duration<double>(fim - inicio).count();
+
+    cout << "Tempo de execucao (Kruskal): " << tempo << " segundos" << endl;
     delete g;
 }
 
