@@ -1,21 +1,20 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <cstdlib> // rand
-#include <ctime>   // time
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
 
 #include "../include/Imagem.h"
 #include "../include/Grafo.h"
 #include "../include/Segmentacao.h"
 #include "../include/Kruskal.h"
 #include "../include/Edmonds.h"
-
-// Inclui a biblioteca de escrita apenas como cabeçalho (a implementação está no Imagem.cpp)
-#include "../vendor/stb_image_write.h"
+#include "../Vendor/stb_image_write.h"
 
 using namespace std;
 
-// Estrutura Union-Find simples para ajudar a colorir os segmentos
+// --- Estruturas de Auxílio (Union Find) ---
 struct UnionFindColor
 {
     vector<int> pai;
@@ -40,27 +39,19 @@ struct UnionFindColor
     }
 };
 
-// Função para gerar a imagem segmentada
-// threshold: Diferença máxima de cor para considerar parte do mesmo segmento
-void salvarSegmentacao(int width, int height, const vector<ArestaSimples> &arestas, string nomeArquivo, double threshold)
+template <typename TipoAresta>
+void salvarSegmentacao(int width, int height, const vector<TipoAresta> &arestas, string nomeArquivo, double threshold)
 {
     UnionFindColor uf(width * height);
-
-    // 1. Formar os componentes conexos (Segmentos)
-    // Só unimos se a aresta foi escolhida pelo Kruskal E se o peso for baixo (similaridade)
     for (const auto &a : arestas)
     {
         if (a.peso <= threshold)
-        {
             uf.unite(a.u, a.v);
-        }
     }
 
-    // 2. Atribuir cores aleatórias para cada segmento raiz
     map<int, vector<unsigned char>> cores;
     srand(time(0));
-
-    vector<unsigned char> buffer(width * height * 3); // Buffer RGB
+    vector<unsigned char> buffer(width * height * 3);
 
     for (int y = 0; y < height; y++)
     {
@@ -68,68 +59,103 @@ void salvarSegmentacao(int width, int height, const vector<ArestaSimples> &arest
         {
             int id = y * width + x;
             int root = uf.find(id);
-
-            // Se essa raiz (segmento) ainda não tem cor, cria uma aleatória
             if (cores.find(root) == cores.end())
             {
-                cores[root] = {
-                    (unsigned char)(rand() % 256),
-                    (unsigned char)(rand() % 256),
-                    (unsigned char)(rand() % 256)};
+                cores[root] = {(unsigned char)(rand() % 256), (unsigned char)(rand() % 256), (unsigned char)(rand() % 256)};
             }
-
-            // Pinta o pixel com a cor do segmento
-            int index = (y * width + x) * 3;
-            buffer[index] = cores[root][0];     // R
-            buffer[index + 1] = cores[root][1]; // G
-            buffer[index + 2] = cores[root][2]; // B
+            int idx = (y * width + x) * 3;
+            buffer[idx] = cores[root][0];
+            buffer[idx + 1] = cores[root][1];
+            buffer[idx + 2] = cores[root][2];
         }
     }
-
-    // 3. Salvar no disco
     stbi_write_png(nomeArquivo.c_str(), width, height, 3, buffer.data(), width * 3);
-    cout << "Segmentacao salva em: " << nomeArquivo << endl;
+    cout << "Imagem salva: " << nomeArquivo << endl;
+}
+
+// --- GERAÇÃO DIRETA DE ARESTAS PARA EDMONDS (SEM CLASSE GRAFO) ---
+// Isso evita alocar milhões de objetos Vertice na heap
+vector<ArestaEdmonds> gerarArestasDireto(const Imagem &img)
+{
+    int w = img.getLargura();
+    int h = img.getAltura();
+    vector<ArestaEdmonds> arestas;
+    // Reserva memória aproximada (4 vizinhos por pixel)
+    arestas.reserve(w * h * 4);
+
+    int id_count = 0;
+
+    for (int y = 0; y < h; y++)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            int u = y * w + x;
+            unsigned char *pixU = img.getPixel(x, y);
+
+            // Vizinhos: Direita, Baixo, Esquerda, Cima
+            int dx[] = {1, 0, -1, 0};
+            int dy[] = {0, 1, 0, -1};
+
+            for (int k = 0; k < 4; k++)
+            {
+                int nx = x + dx[k];
+                int ny = y + dy[k];
+
+                if (nx >= 0 && nx < w && ny >= 0 && ny < h)
+                {
+                    int v = ny * w + nx;
+                    unsigned char *pixV = img.getPixel(nx, ny);
+
+                    float dist = sqrt(pow(pixU[0] - pixV[0], 2) +
+                                      pow(pixU[1] - pixV[1], 2) +
+                                      pow(pixU[2] - pixV[2], 2));
+
+                    arestas.push_back({u, v, dist, id_count++});
+                }
+            }
+        }
+    }
+    return arestas;
 }
 
 int main()
 {
-    string path = "./imagem.jpg"; // Certifique-se que image.jpg está na pasta raiz onde você roda o executável
+    string path = "./image.jpg";
     Imagem img;
 
     if (!img.carregar(path))
-    {
-        cout << "Erro ao carregar imagem (verifique o caminho!).\n";
         return 1;
-    }
 
-    // --- KRUSKAL (Segmentação) ---
+    // --- KRUSKAL (Usa a classe Grafo original, pois o Kruskal consome menos memória) ---
+    // Se ainda der erro de memória, comente o bloco do Kruskal para testar só o Edmonds
     cout << "\n--- Rodando Kruskal ---\n";
-    Grafo gKruskal(false);
-    converterImagemParaGrafo(img, gKruskal);
+    {
+        Grafo gKruskal(false);
+        converterImagemParaGrafo(img, gKruskal);
+        ResultadoKruskal resK = executarKruskal(gKruskal);
+        cout << "Custo MST: " << resK.custoTotal << endl;
+        salvarSegmentacao(img.getLargura(), img.getAltura(), resK.arestasEscolhidas, "saida_kruskal.png", 10.0);
+    } // As chaves forçam a destruição do gKruskal e liberação de memória AQUI
 
-    ResultadoKruskal resK = executarKruskal(gKruskal);
-    cout << "Custo MST: " << resK.custoTotal << endl;
-
-    // AQUI: Gerar a imagem visual
-    // Threshold = 30.0 (exemplo): Arestas com diferença de cor > 30 serão cortadas, separando os objetos.
-    // Teste valores diferentes (10, 50, 100) para ver o resultado mudar.
-    salvarSegmentacao(img.getLargura(), img.getAltura(), resK.arestasEscolhidas, "saida_kruskal.png", 30.0);
-
-    // --- EDMONDS ---
+    /*
+    // --- EDMONDS (Versão Otimizada Direta) ---
     cout << "\n--- Rodando Edmonds ---\n";
-    Grafo gEdmonds(true);
-    converterImagemParaGrafo(img, gEdmonds);
 
-    // O Edmonds é mais complexo de visualizar como segmentação simples de regiões,
-    // geralmente ele é usado para encontrar estruturas de fluxo ou hierarquia.
-    // Vamos apenas rodar o cálculo por enquanto.
-    int raiz = 0;
-    double custoE = executarEdmonds(gEdmonds, raiz);
+    // 1. Gera vetor de arestas leves direto da imagem
+    vector<ArestaEdmonds> arestasEdmonds = gerarArestasDireto(img);
+    cout << "Arestas geradas: " << arestasEdmonds.size() << endl;
 
-    if (custoE == -1)
-        cout << "Nao foi possivel gerar arborescencia.\n";
+    // 2. Executa algoritmo
+    ResultadoEdmonds resE = executarEdmondsDireto(img.getLargura() * img.getAltura(), arestasEdmonds, 0);
+
+    if (resE.custoTotal == -1)
+        cout << "Erro: Arborescencia impossivel.\n";
     else
-        cout << "Custo Arborescencia: " << custoE << endl;
+    {
+        cout << "Custo Arborescencia: " << resE.custoTotal << endl;
+        salvarSegmentacao(img.getLargura(), img.getAltura(), resE.arestas, "saida_edmonds.png", 150.0);
+    }
+    */
 
     return 0;
 }

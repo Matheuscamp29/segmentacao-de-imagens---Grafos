@@ -4,9 +4,9 @@
 #include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../vendor/stb_image.h"
+#include "../Vendor/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../vendor/stb_image_write.h"
+#include "../Vendor/stb_image_write.h"
 
 Imagem::Imagem() : largura(0), altura(0), canais(0), dados(nullptr) {}
 

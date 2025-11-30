@@ -1,17 +1,31 @@
 #ifndef EDMONDS_H
 #define EDMONDS_H
 
-#include "Grafo.h"
 #include <vector>
+#include "Imagem.h"
 
-// Estrutura necessária para o algoritmo
-struct Edge
+// Estrutura leve para o algoritmo (16 bytes)
+struct ArestaEdmonds
 {
     int u, v;
-    double w;
+    float peso;
+    int id_orig; // Índice da aresta original para recuperação
 };
 
-// Recebe o grafo, converte internamente e calcula
-double executarEdmonds(Grafo &grafo, int raiz);
+// Estrutura para o resultado final
+struct ArestaFinal
+{
+    int u, v;
+    float peso;
+};
+
+struct ResultadoEdmonds
+{
+    double custoTotal;
+    std::vector<ArestaFinal> arestas;
+};
+
+// Nova função que aceita a lista de arestas diretamente, sem depender da classe Grafo
+ResultadoEdmonds executarEdmondsDireto(int numVertices, std::vector<ArestaEdmonds> &arestas, int raiz);
 
 #endif
