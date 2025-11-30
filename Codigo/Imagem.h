@@ -25,6 +25,9 @@ public:
     // Retorna o ponteiro para um pixel específico (x, y)
     unsigned char* getPixel(int x, int y) const;
 
+    void blur(Imagem* img);
+
+
 private:
     int largura;
     int altura;

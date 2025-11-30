@@ -74,4 +74,3 @@ void converterImagemParaGrafo(const Imagem& img, Grafo& grafo) {
     std::cout << "Grafo gerado com " << grafo.listaDeVertices.size() << " vertices." << std::endl;
 }
 
-void blur()

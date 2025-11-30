@@ -2,6 +2,7 @@
 
 #include "Imagem.h"
 #include <iostream>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../vendor/stb_image.h"
@@ -48,4 +49,28 @@ unsigned char* Imagem::getPixel(int x, int y) const {
         return nullptr;
     }
     return dados + (y * largura + x) * canais;
+}
+
+void Imagem::blur(Imagem* img){
+    if (!img) return;
+    int altura = img->altura;
+    int largura = img->altura;
+    int r, g, b = 0;
+
+    std::vector<unsigned char> buffer (largura * altura * canais);
+
+    const int Gauss[3][3] ={{1, 2, 1},
+                            {2, 4, 2},
+                            {1, 2, 1}};
+    int soma = 16;                        
+
+    for (int y = 0; y < altura; y++)
+        for (int x = 0; x<largura; x++)
+            int ky, kx = -1;
+
+            if (y == 0)
+
+            for (int ky ; ky < 1; ky++ )
+                for (int kx ; kx < 1; kx++)
+
 }

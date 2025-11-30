@@ -51,7 +51,7 @@ void rodarEdmonds(Imagem& img) {
     int contagem = 0;
     cout << "--- Resultado Edmonds ---" << endl;
     for (auto &e : resultadoArbo) {
-        if (e.w > 0.001) { 
+        if (e.w > 0) { 
             //cout << e.u << " -> " << e.v << " (peso = " << e.w << ")\n";
             contagem++;
         }
@@ -77,7 +77,7 @@ void rodarKruskal(Imagem& img) {
     int arestasVisiveis = 0;
 
     for (const auto& aresta : resultado.arestasEscolhidas) {
-        if (aresta.peso > 0.001) {
+        if (aresta.peso > 0) {
             arestasVisiveis++;
         }
     }
