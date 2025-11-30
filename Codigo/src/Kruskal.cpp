@@ -1,4 +1,4 @@
-#include "./include/Kruskal.h"
+#include "../include/Kruskal.h"
 #include <algorithm>
 #include <numeric>
 

@@ -2,8 +2,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include "./include/Grafo.h"
-#include "./include/Imagem.h"
+#include "../include/Grafo.h"
+#include "../include/Imagem.h"
 using namespace std;
 
 Aresta::Aresta(Vertice *destino, double peso)

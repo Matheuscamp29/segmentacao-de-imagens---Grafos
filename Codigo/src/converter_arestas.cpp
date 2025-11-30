@@ -1,6 +1,6 @@
 #include <vector>
-#include "./include/Grafo.h"
-#include "./include/Edmonds.h"
+#include "../include/Grafo.h"
+#include "../include/Edmonds.h"
 
 using namespace std;
 

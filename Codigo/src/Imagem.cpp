@@ -1,11 +1,12 @@
-#include "./include/Imagem.h"
+#include "../include/Imagem.h"
 #include <iostream>
 #include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../Vendor/stb_image.h"
+#include "../../Vendor/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../Vendor/stb_image_write.h"
+#include "../../Vendor/stb_image_write.h"
+
 
 Imagem::Imagem() : largura(0), altura(0), canais(0), dados(nullptr) {}
 
@@ -58,7 +59,7 @@ unsigned char *Imagem::getPixel(int x, int y) const
     return dados + (y * largura + x) * canais;
 }
 
-void Imagem::blur(Imagem *img)
+/* void Imagem::blur(Imagem *img)
 {
     if (!img)
         return;
@@ -81,4 +82,4 @@ void Imagem::blur(Imagem *img)
 
         for (int ky; ky < 1; ky++)
             for (int kx; kx < 1; kx++)
-}
+} */

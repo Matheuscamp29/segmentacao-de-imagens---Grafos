@@ -1,4 +1,4 @@
-#include "./include/Edmonds.h"
+#include "../include/Edmonds.h"
 #include <iostream>
 #include <vector>
 #include <limits>

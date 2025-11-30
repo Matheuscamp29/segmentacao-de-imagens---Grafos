@@ -13,7 +13,7 @@
 #include "../include/Imagem.h"
 #include "../include/Grafo.h"
 
-#include "../Vendor/stb_image_write.h"
+#include "../../Vendor/stb_image_write.h"
 
 using namespace std;
 
@@ -100,7 +100,6 @@ void rodarEdmonds(Imagem &img)
 
     vector<Edge> edges = converterParaArestas(g);
 
-    // Mapeamento para recuperar aresta original (se necessário)
     int maxId = 0;
     for (const auto &e : edges)
         if (e.id > maxId)
@@ -149,7 +148,7 @@ void rodarKruskal(Imagem &img)
 
 int main()
 {
-    string path = "./image.jpg";
+    string path = "../image.jpg";
     Imagem img;
 
     if (img.carregar(path))

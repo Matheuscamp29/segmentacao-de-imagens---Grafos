@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include "./include/Imagem.h"
-#include "./include/Grafo.h"
+#include "../include/Imagem.h"
+#include "../include/Grafo.h"
 
 
 
