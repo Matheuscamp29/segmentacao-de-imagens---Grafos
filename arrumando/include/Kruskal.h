@@ -1,0 +1,22 @@
+#ifndef KRUSKAL_H
+#define KRUSKAL_H
+
+#include "Grafo.h"
+#include <vector>
+
+// Estrutura interna para o algoritmo
+struct ArestaSimples
+{
+    int u, v;
+    double peso;
+};
+
+struct ResultadoKruskal
+{
+    double custoTotal;
+    std::vector<ArestaSimples> arestasEscolhidas;
+};
+
+ResultadoKruskal executarKruskal(Grafo &grafo);
+
+#endif
