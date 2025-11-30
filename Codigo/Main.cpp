@@ -91,7 +91,7 @@ void rodarKruskal(Imagem& img) {
 }
 
 int main() {
-    string path = "./image.jpg";
+    string path = "./image2.jpg";
     Imagem img;
 
     if (img.carregar(path)) {
