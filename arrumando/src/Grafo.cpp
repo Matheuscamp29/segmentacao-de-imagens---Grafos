@@ -9,7 +9,7 @@ Aresta::Aresta(Vertice *destino, double peso)
 
 Vertice::Vertice(int id, int x, int y, int r, int g, int b)
 {
-    this->id = id; // Atribuição do ID
+    this->id = id;
     this->r = r;
     this->g = g;
     this->b = b;
@@ -19,7 +19,6 @@ Vertice::Vertice(int id, int x, int y, int r, int g, int b)
 
 void Vertice::adicionarAresta(Vertice *destino)
 {
-    // Lógica original de cálculo de peso mantida
     double diferenca = std::sqrt(
         std::pow(this->r - destino->r, 2) +
         std::pow(this->g - destino->g, 2) +

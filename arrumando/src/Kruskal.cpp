@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <numeric>
 
-// Função auxiliar para extrair arestas sem poluir a classe Grafo
 std::vector<ArestaSimples> extrairArestasKruskal(Grafo &grafo)
 {
     std::vector<ArestaSimples> arestas;
@@ -10,7 +9,6 @@ std::vector<ArestaSimples> extrairArestasKruskal(Grafo &grafo)
     {
         for (auto &a : v->vizinhos)
         {
-            // Se não direcionado, evita duplicidade (u < v)
             if (grafo.direcionado || v->id < a.destino->id)
             {
                 arestas.push_back({v->id, a.destino->id, a.peso});
@@ -48,7 +46,6 @@ ResultadoKruskal executarKruskal(Grafo &grafo)
     ResultadoKruskal res;
     res.custoTotal = 0;
 
-    // Converte o grafo para lista de arestas aqui
     std::vector<ArestaSimples> arestas = extrairArestasKruskal(grafo);
 
     std::sort(arestas.begin(), arestas.end(), [](const ArestaSimples &a, const ArestaSimples &b)

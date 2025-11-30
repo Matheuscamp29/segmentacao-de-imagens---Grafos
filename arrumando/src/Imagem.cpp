@@ -1,5 +1,3 @@
-// Ler os arquivos de imagem
-
 #include "Imagem.h"
 #include <iostream>
 

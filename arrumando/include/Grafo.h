@@ -9,7 +9,6 @@ class Vertice;
 class Aresta
 {
 public:
-    // ID removido daqui
     Vertice *destino;
     double peso;
 
@@ -19,14 +18,13 @@ public:
 class Vertice
 {
 public:
-    int id; // ID movido para cá
+    int id;
     int r, g, b;
     int x, y;
     std::vector<Aresta> vizinhos;
 
     Vertice(int id, int x, int y, int r, int g, int b);
 
-    // Método mantém a lógica original de calcular peso euclidiano
     void adicionarAresta(Vertice *destino);
 };
 

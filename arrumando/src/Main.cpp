@@ -14,7 +14,6 @@
 
 using namespace std;
 
-// --- Estruturas de Auxílio (Union Find) ---
 struct UnionFindColor
 {
     vector<int> pai;
@@ -73,14 +72,11 @@ void salvarSegmentacao(int width, int height, const vector<TipoAresta> &arestas,
     cout << "Imagem salva: " << nomeArquivo << endl;
 }
 
-// --- GERAÇÃO DIRETA DE ARESTAS PARA EDMONDS (SEM CLASSE GRAFO) ---
-// Isso evita alocar milhões de objetos Vertice na heap
 vector<ArestaEdmonds> gerarArestasDireto(const Imagem &img)
 {
     int w = img.getLargura();
     int h = img.getAltura();
     vector<ArestaEdmonds> arestas;
-    // Reserva memória aproximada (4 vizinhos por pixel)
     arestas.reserve(w * h * 4);
 
     int id_count = 0;
@@ -92,7 +88,6 @@ vector<ArestaEdmonds> gerarArestasDireto(const Imagem &img)
             int u = y * w + x;
             unsigned char *pixU = img.getPixel(x, y);
 
-            // Vizinhos: Direita, Baixo, Esquerda, Cima
             int dx[] = {1, 0, -1, 0};
             int dy[] = {0, 1, 0, -1};
 
@@ -126,8 +121,6 @@ int main()
     if (!img.carregar(path))
         return 1;
 
-    // --- KRUSKAL (Usa a classe Grafo original, pois o Kruskal consome menos memória) ---
-    // Se ainda der erro de memória, comente o bloco do Kruskal para testar só o Edmonds
     cout << "\n--- Rodando Kruskal ---\n";
     {
         Grafo gKruskal(false);
@@ -135,7 +128,7 @@ int main()
         ResultadoKruskal resK = executarKruskal(gKruskal);
         cout << "Custo MST: " << resK.custoTotal << endl;
         salvarSegmentacao(img.getLargura(), img.getAltura(), resK.arestasEscolhidas, "saida_kruskal.png", 10.0);
-    } // As chaves forçam a destruição do gKruskal e liberação de memória AQUI
+    }
 
     /*
     // --- EDMONDS (Versão Otimizada Direta) ---

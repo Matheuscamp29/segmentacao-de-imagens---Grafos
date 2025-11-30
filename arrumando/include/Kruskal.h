@@ -4,7 +4,6 @@
 #include "Grafo.h"
 #include <vector>
 
-// Estrutura interna para o algoritmo
 struct ArestaSimples
 {
     int u, v;
