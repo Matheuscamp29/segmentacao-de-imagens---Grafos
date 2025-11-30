@@ -1,15 +1,15 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include "Imagem.cpp"
-#include "Grafo.cpp"
+#include "./include/Imagem.h"
+#include "./include/Grafo.h"
 
 
 
 void converterImagemParaGrafo(const Imagem& img, Grafo& grafo) {
     int largura = img.getLargura();
     int altura = img.getAltura();
-    int idAresta = 0;
+    int idVertice = 0;
     std::vector<std::vector<Vertice*>> mapaVertices(altura, std::vector<Vertice*>(largura));
     
    
@@ -17,7 +17,7 @@ void converterImagemParaGrafo(const Imagem& img, Grafo& grafo) {
         for (int x = 0; x < largura; x++) {
             
             unsigned char* pixel = img.getPixel(x, y);
-            Vertice* v = new Vertice(x, y, (int)pixel[0], (int)pixel[1], (int)pixel[2]);
+            Vertice* v = new Vertice(idVertice++, x,  y, (int)pixel[0], (int)pixel[1], (int)pixel[2]);
 
             grafo.adicionarVertice(v);
             mapaVertices[y][x] = v;
@@ -30,25 +30,25 @@ void converterImagemParaGrafo(const Imagem& img, Grafo& grafo) {
 
             if (x + 1 < largura) {
                 Vertice* direita = mapaVertices[y][x + 1];
-                grafo.inserirAresta(atual, direita, idAresta++);
+                grafo.inserirAresta(atual, direita);
             }
 
             if (y + 1 < altura) {
                 Vertice* baixo = mapaVertices[y + 1][x];
-                grafo.inserirAresta(atual, baixo, idAresta++);
+                grafo.inserirAresta(atual, baixo);
             }
 
             if (grafo.direcionado == 1 && x - 1 >= 0){
                 Vertice* esquerda = mapaVertices[y][x-1];
-                grafo.inserirAresta(atual, esquerda, idAresta++);
+                grafo.inserirAresta(atual, esquerda);
             }
 
             if (grafo.direcionado == 1 && y - 1 >= 0){
                 Vertice* cima = mapaVertices[y-1][x];
-                grafo.inserirAresta(atual, cima, idAresta++);
+                grafo.inserirAresta(atual, cima);
             }
 
-            if (x + 1 < largura && y + 1 < altura){
+            /* if (x + 1 < largura && y + 1 < altura){
                 Vertice* dbaixo = mapaVertices[y+1][x+1];
                 grafo.inserirAresta(atual, dbaixo, idAresta++);
             }
@@ -67,8 +67,11 @@ void converterImagemParaGrafo(const Imagem& img, Grafo& grafo) {
                 Vertice* ecima = mapaVertices[y-1][x-1];
                 grafo.inserirAresta(atual, ecima, idAresta++);
             }
-        }
+                */
+        } 
     }
     
     std::cout << "Grafo gerado com " << grafo.listaDeVertices.size() << " vertices." << std::endl;
 }
+
+void blur()

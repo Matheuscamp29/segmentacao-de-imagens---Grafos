@@ -5,10 +5,10 @@
 
 struct Edge {
     int u, v;      
-    double w;      
+    double w;
+    int id;      
 };
 
-//função principal do algoritmo de Edmonds (Chu–Liu/Edmonds)
-double edmonds(int root, int N, std::vector<Edge> edges, std::vector<Edge> &resultado);
+std::vector<int> edmonds(int root, int N, std::vector<Edge> edges);
 
 #endif
