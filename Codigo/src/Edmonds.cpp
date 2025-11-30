@@ -31,13 +31,13 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
     vector<int> menorArestaIdx(N, -1);
     pegarMenoresArestas(N, edges, menorArestaIdx);
 
-    // 1. Detectar Ciclos
+
     int groupCount = 0;
     vector<int> group(N, -1);
     vector<int> visitado(N, -1);
     bool temCiclo = false;
 
-    // Tenta encontrar ciclos usando as menores arestas escolhidas
+ 
     for (int i = 0; i < N; i++)
     {
         if (i == root)
@@ -73,14 +73,12 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
         {
             if (i != root && menorArestaIdx[i] != -1)
             {
-                // Retorna o ID original da aresta
                 resultado.push_back(edges[menorArestaIdx[i]].id);
             }
         }
         return resultado;
     }
 
-    // Todo nó que não está num ciclo ganha seu próprio grupo
     for (int i = 0; i < N; i++)
     {
         if (group[i] == -1)
@@ -89,7 +87,7 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
 
     vector<Edge> novasArestas;
 
-    // Mapeia qual aresta original corresponde à nova aresta contraída
+
     vector<int> mapParaOriginal;
 
     for (int i = 0; i < edges.size(); i++)
@@ -110,25 +108,23 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
         }
     }
 
-    // Chamada Recursiva
+
     int novaRaiz = group[root];
     vector<int> arestasEscolhidasRecursao = edmonds(novaRaiz, groupCount, novasArestas);
 
-    // --- EXPANSÃO ---
+
     vector<int> resultadoFinal;
     vector<bool> noComEntradaExterna(N, false);
 
-    // 1. Adiciona as arestas que a recursão escolheu
+
     for (int idAresta : arestasEscolhidasRecursao)
     {
 
         int idxOriginal = -1;
-        // Procura linear
         for (size_t k = 0; k < novasArestas.size(); k++)
         {
             if (novasArestas[k].id == idAresta)
             {
-                // Recupera o índice da aresta real na lista 'edges'
                 idxOriginal = mapParaOriginal[k];
                 break;
             }
@@ -140,8 +136,6 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
             noComEntradaExterna[edges[idxOriginal].v] = true;
         }
     }
-
-    // 2. Adiciona as arestas internas dos ciclos
     for (int i = 0; i < N; i++)
     {
         if (i != root && !noComEntradaExterna[i])
@@ -149,7 +143,7 @@ vector<int> edmonds(int root, int N, vector<Edge> edges)
             int u = edges[menorArestaIdx[i]].u;
             int v = edges[menorArestaIdx[i]].v;
 
-            // Só adiciona se u e v estavam no mesmo grupo
+           
             if (group[u] == group[v])
             {
                 resultadoFinal.push_back(edges[menorArestaIdx[i]].id);
