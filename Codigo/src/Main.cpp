@@ -141,14 +141,14 @@ void rodarKruskal(Imagem &img)
 
     double threshold = 10.0;
 
-    salvarSegmentacao(img.getLargura(), img.getAltura(), resultado.arestasEscolhidas, "resultado_segmentacao.png", threshold);
+    salvarSegmentacao(img.getLargura(), img.getAltura(), resultado.arestasEscolhidas, "../resultado_segmentacao.png", threshold);
 
     delete g;
 }
 
 int main()
 {
-    string path = "../image.jpg";
+    string path = "../image2.jpg";
     Imagem img;
 
     if (img.carregar(path))
@@ -160,6 +160,14 @@ int main()
         cout << "Falha ao carregar imagem.\n";
         return 1;
     }
+
+    img.aplicarBlur(&img, 5);
+
+    if (img.salvar("../img_blur.png")) {
+        std::cout << "Sucesso! Verifique o arquivo 'saida_blur.png' na pasta do projeto." << std::endl;
+    } else {
+        std::cerr << "Erro ao salvar a imagem." << std::endl;
+    }   
 
     int opcao = 0;
     do

@@ -102,7 +102,7 @@ void Imagem::blur(Imagem *img)
                     b += pixel[2] * peso;
                 }
             }
-            int index = (y * largura + x);
+            int index = (y * largura + x) * canais;
             buffer[index]     = r / soma;
             buffer[index + 1] = g / soma;
             buffer[index + 2] = b / soma;
@@ -113,5 +113,11 @@ void Imagem::blur(Imagem *img)
         for (size_t i = 0; i < buffer.size(); i++) {
             img->dados[i] = buffer[i];
         }
+    }
+}
+
+void Imagem::aplicarBlur (Imagem* img, int n){
+    for (int i = 0; i<n; i++){
+        blur(img);
     }
 }
