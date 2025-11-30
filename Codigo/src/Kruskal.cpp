@@ -18,26 +18,49 @@ std::vector<ArestaSimples> extrairArestasKruskal(Grafo &grafo)
     return arestas;
 }
 
-struct UnionFind
+struct UnionFindColor
 {
     std::vector<int> pai;
-    UnionFind(int n)
+    std::vector<int> tamanho;
+
+    UnionFindColor(int n)
     {
         pai.resize(n);
-        std::iota(pai.begin(), pai.end(), 0);
+        tamanho.resize(n, 1);
+        for (int i = 0; i < n; i++)
+            pai[i] = i;
     }
+
     int find(int i)
     {
         if (pai[i] == i)
             return i;
         return pai[i] = find(pai[i]);
     }
+
     void unite(int i, int j)
     {
         int root_i = find(i);
         int root_j = find(j);
         if (root_i != root_j)
-            pai[root_i] = root_j;
+        {
+           
+            if (tamanho[root_i] < tamanho[root_j])
+            {
+                pai[root_i] = root_j;
+                tamanho[root_j] += tamanho[root_i];
+            }
+            else
+            {
+                pai[root_j] = root_i;
+                tamanho[root_i] += tamanho[root_j];
+            }
+        }
+    }
+
+    int getSize(int i)
+    {
+        return tamanho[find(i)];
     }
 };
 
@@ -51,7 +74,7 @@ ResultadoKruskal executarKruskal(Grafo &grafo)
     std::sort(arestas.begin(), arestas.end(), [](const ArestaSimples &a, const ArestaSimples &b)
               { return a.peso < b.peso; });
 
-    UnionFind uf(grafo.listaDeVertices.size());
+    UnionFindColor uf(grafo.listaDeVertices.size());
 
     for (const auto &aresta : arestas)
     {

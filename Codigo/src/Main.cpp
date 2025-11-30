@@ -8,45 +8,69 @@
 
 #include "../include/Edmonds.h"
 #include "../include/Kruskal.h"
-#include "converter_arestas.cpp"
-#include "../include/Segmentacao.h"
+#include "converter_arestas.cpp" 
 #include "../include/Imagem.h"
+#include "../include/Segmentacao.h"
 #include "../include/Grafo.h"
 
 #include "../../Vendor/stb_image_write.h"
 
 using namespace std;
 
-// --- Estrutura Auxiliar para Colorir os Segmentos ---
+
 struct UnionFindColor
 {
     vector<int> pai;
+    vector<int> tamanho; 
+
     UnionFindColor(int n)
     {
         pai.resize(n);
+        tamanho.resize(n, 1); 
         for (int i = 0; i < n; i++)
             pai[i] = i;
     }
+
     int find(int i)
     {
         if (pai[i] == i)
             return i;
         return pai[i] = find(pai[i]);
     }
+
     void unite(int i, int j)
     {
         int root_i = find(i);
         int root_j = find(j);
         if (root_i != root_j)
-            pai[root_i] = root_j;
+        {
+            
+            if (tamanho[root_i] < tamanho[root_j])
+            {
+                pai[root_i] = root_j;
+                tamanho[root_j] += tamanho[root_i];
+            }
+            else
+            {
+                pai[root_j] = root_i;
+                tamanho[root_i] += tamanho[root_j];
+            }
+        }
+    }
+
+   
+    int getSize(int i)
+    {
+        return tamanho[find(i)];
     }
 };
 
-// --- Função Original: Cores Aleatórias ---
-void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold)
+
+void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold, int minSize)
 {
     UnionFindColor uf(width * height);
 
+    
     for (const auto &a : arestasMST)
     {
         if (a.peso <= threshold)
@@ -54,6 +78,26 @@ void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &a
             uf.unite(a.u, a.v);
         }
     }
+
+
+    if (minSize > 0)
+    {
+        for (const auto &a : arestasMST)
+        {
+            int rootU = uf.find(a.u);
+            int rootV = uf.find(a.v);
+
+            if (rootU != rootV)
+            {
+               
+                if (uf.getSize(rootU) < minSize || uf.getSize(rootV) < minSize)
+                {
+                    uf.unite(rootU, rootV);
+                }
+            }
+        }
+    }
+
 
     map<int, vector<unsigned char>> cores;
     srand(time(0));
@@ -83,16 +127,17 @@ void salvarSegmentacaoMapa(int width, int height, const vector<ArestaSimples> &a
     }
 
     stbi_write_png(nomeArquivo.c_str(), width, height, 3, buffer.data(), width * 3);
-    cout << "Imagem (MAPA) salva em: " << nomeArquivo << endl;
+    cout << "Imagem (MAPA) salva em: " << nomeArquivo << " [minSize: " << minSize << "]" << endl;
 }
 
-// --- Nova Função: Cores Reais ---
-void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold)
+
+void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &arestasMST, string nomeArquivo, double threshold, int minSize)
 {
     int width = img.getLargura();
     int height = img.getAltura();
     UnionFindColor uf(width * height);
 
+  
     for (const auto &a : arestasMST)
     {
         if (a.peso <= threshold)
@@ -101,7 +146,24 @@ void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &
         }
     }
 
-    // Mapeia ID_Raiz -> {SomaR, SomaG, SomaB, Contador}
+
+    if (minSize > 0)
+    {
+        for (const auto &a : arestasMST)
+        {
+            int rootU = uf.find(a.u);
+            int rootV = uf.find(a.v);
+            if (rootU != rootV)
+            {
+                if (uf.getSize(rootU) < minSize || uf.getSize(rootV) < minSize)
+                {
+                    uf.unite(rootU, rootV);
+                }
+            }
+        }
+    }
+
+
     map<int, vector<unsigned long long>> dadosCores;
 
     for (int y = 0; y < height; y++)
@@ -139,6 +201,8 @@ void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &
             unsigned long long b = dadosCores[root][2];
 
             int index = (y * width + x) * 3;
+            if (count == 0) count = 1;
+
             buffer[index] = (unsigned char)(r / count);
             buffer[index + 1] = (unsigned char)(g / count);
             buffer[index + 2] = (unsigned char)(b / count);
@@ -149,7 +213,8 @@ void salvarSegmentacaoResultado(const Imagem &img, const vector<ArestaSimples> &
     cout << "Imagem (RESULTADO) salva em: " << nomeArquivo << endl;
 }
 
-void rodarEdmonds(Imagem &img, double threshold)
+
+void rodarEdmonds(Imagem &img, double threshold, int minSize)
 {
     auto inicio = chrono::high_resolution_clock::now();
 
@@ -178,16 +243,15 @@ void rodarEdmonds(Imagem &img, double threshold)
     {
         Edge original = mapaArestas[id];
         custoTotal += original.w;
-        // Converte Edge -> ArestaSimples para poder usar a função de salvar
         arestasVis.push_back({original.u, original.v, original.w});
     }
 
     cout << "--- Resultado Edmonds ---" << endl;
     cout << "Custo Total: " << custoTotal << endl;
 
-    // Salva as duas versões usando o threshold passado
-    salvarSegmentacaoMapa(img.getLargura(), img.getAltura(), arestasVis, "../edmonds_mapa.png", threshold);
-    salvarSegmentacaoResultado(img, arestasVis, "../edmonds_resultado.png", threshold);
+    // Passa o minSize para as funções de salvar
+    salvarSegmentacaoMapa(img.getLargura(), img.getAltura(), arestasVis, "../edmonds_mapa.png", threshold, minSize);
+    salvarSegmentacaoResultado(img, arestasVis, "../edmonds_resultado.png", threshold, minSize);
 
     auto fim = chrono::high_resolution_clock::now();
     double tempo = chrono::duration<double>(fim - inicio).count();
@@ -197,7 +261,7 @@ void rodarEdmonds(Imagem &img, double threshold)
     delete g;
 }
 
-void rodarKruskal(Imagem &img, double threshold)
+void rodarKruskal(Imagem &img, double threshold, int minSize)
 {
     auto inicio = chrono::high_resolution_clock::now();
 
@@ -212,9 +276,8 @@ void rodarKruskal(Imagem &img, double threshold)
     cout << "Custo Total MST: " << resultado.custoTotal << endl;
     cout << "Arestas na MST: " << resultado.arestasEscolhidas.size() << endl;
 
-    // Gera as duas imagens
-    salvarSegmentacaoMapa(img.getLargura(), img.getAltura(), resultado.arestasEscolhidas, "../kruskal_mapa.png", threshold);
-    salvarSegmentacaoResultado(img, resultado.arestasEscolhidas, "../kruskal_resultado.png", threshold);
+    salvarSegmentacaoMapa(img.getLargura(), img.getAltura(), resultado.arestasEscolhidas, "../kruskal_mapa.png", threshold, minSize);
+    salvarSegmentacaoResultado(img, resultado.arestasEscolhidas, "../kruskal_resultado.png", threshold, minSize);
 
     auto fim = chrono::high_resolution_clock::now();
     double tempo = chrono::duration<double>(fim - inicio).count();
@@ -225,7 +288,7 @@ void rodarKruskal(Imagem &img, double threshold)
 
 int main()
 {
-    string path = "./image2.jpg";
+    string path = "../image2.jpg";
     Imagem img;
 
     if (img.carregar(path))
@@ -239,17 +302,16 @@ int main()
     }
 
     int n = 0;
-    cout << "Insira um valor para o numero de blurs" << endl;
+    cout << "Insira um valor para o numero de blurs (Sugestao: 1 a 5): ";
     cin >> n;
-    img.aplicarBlur(&img, n);
-
-    if (img.salvar("../img_blur.png"))
-    {
-        std::cout << "Sucesso! Verifique o arquivo 'img_blur.png' na pasta do projeto." << std::endl;
-    }
-    else
-    {
-        std::cerr << "Erro ao salvar a imagem." << std::endl;
+    
+    if (n > 0) {
+        img.aplicarBlur(&img, n);
+        if (img.salvar("../img_blur.png")) {
+            std::cout << "Sucesso! Verifique o arquivo 'img_blur.png' na pasta do projeto." << std::endl;
+        } else {
+            std::cerr << "Erro ao salvar a imagem." << std::endl;
+        }
     }
 
     int opcao = 0;
@@ -266,18 +328,23 @@ int main()
         {
         case 1:
         {
-            int threshold = 0;
-            cout << "Insira um valor para o threshold (Edmonds)" << endl;
+            double threshold = 0;
+            int minSize = 0;
+            cout << "Insira o threshold (Edmonds): ";
             cin >> threshold;
-            rodarEdmonds(img, threshold);
+            cout << "Insira o tamanho minimo de segmento (minSize) [ex: 50]: ";
+            cin >> minSize;
+            
+            rodarEdmonds(img, threshold, minSize);
             break;
         }
         case 2:
         {
-            int threshold = 0;
-            cout << "Insira um valor para o threshold (Kruskal)" << endl;
+            double threshold = 0;
+            int minSize = 0;
+            cout << "Insira o threshold (Kruskal): ";
             cin >> threshold;
-            rodarKruskal(img, threshold);
+            rodarKruskal(img, threshold, 50);
             break;
         }
         case 0:
